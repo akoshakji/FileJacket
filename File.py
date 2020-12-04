@@ -1,5 +1,5 @@
 class File:
     
-    def __init__(self, name, size):
+    def __init__(self, name, timestamp):
         self.name = name
-        self.size = size
+        self.timestamp = timestamp

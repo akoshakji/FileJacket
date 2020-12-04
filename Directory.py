@@ -1,7 +1,7 @@
 class Directory:
     
-    def __init__(self, name, size):
+    def __init__(self, name, timestamp):
         self.name = name
-        self.subfolders = []
+        self.timestamp = timestamp
+        self.children = []
         self.files = []
-        self.size = size
