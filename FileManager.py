@@ -1,6 +1,6 @@
 import os
 import os.path as path
-import re
+import pickle
 
 from Directory import Directory
 from File import File
@@ -39,18 +39,14 @@ class FileManager:
             elif (entry.is_dir() and (entry.name not in self.ignore)):
                 directory.children.append(Directory(entry.name, os.stat(entry.path).st_mtime))
                 self.build_tree(entry.path, directory.children[-1])
-        
-        self.print_subdirectories(directory)
-    
-    def print_tree(self):
-        pass
-    
-    def print_subdirectories(self, directory):
+
+    def print_tree(self, directory):
         print("------- " + directory.name + " /", directory.timestamp, " -------")
         for entry in directory.children:
             print(entry.name)
+            self.print_tree(entry)
         self.print_files(directory)
-            
+
     def print_files(self, directory):
         for entry in directory.files:
             print(entry.name, "\t", entry.timestamp)
@@ -58,3 +54,20 @@ class FileManager:
 if __name__ == "__main__":
     HOME = os.environ['HOME']
     f = FileManager(HOME + '/Desktop/test')
+
+    print("Dumping pickle..")
+    with open('tree.pickle', 'wb') as file: # pickle file name should be the same as principal dir
+        # Pickle the 'data' dictionary using the highest protocol available.
+        pickle.dump(f, file, pickle.HIGHEST_PROTOCOL)
+
+    print("Deleting f..")
+    del f
+
+    print("Unpickling..")
+    with open('tree.pickle', 'rb') as file:
+        # The protocol version used is detected automatically, so we do not
+        # have to specify it.
+        f = pickle.load(file)
+
+    print(f)
+    f.print_tree(f.root)
