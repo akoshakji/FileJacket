@@ -21,7 +21,6 @@ class Synchronizer:
             if entry_file in dir2.files:
                 index = dir2.files.index(entry_file)
                 if entry_file == dir2.files[index]:
-                    print(entry_file.name, entry_file.timestamp, entry_file.path)
                     print("Files are the same", entry_file.name)
                     continue
             print("File Not Found, upload it..", entry_file.name)
@@ -41,10 +40,10 @@ class Synchronizer:
                 self.compare_filesystems(self.fs_local.current, self.fs_pickled.current)
             else:
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
-                #self.upload_directory(entry_dir)
+                self.upload_directory(entry_dir)
         
-    def upload_file(self, item):
-        print("File", item.name, "Uploaded!")
+    def upload_file(self, file_item):
+        print("File", file_item.name, "Uploaded!")
         # with open(entry, 'rb') as file:
                 #     print("[+]", entry.name)
                 #     try:
@@ -57,8 +56,16 @@ class Synchronizer:
                 #             print(err)
                 #             sys.exit()
     
-    def upload_directory(self, item):
-        print("Creating Directory", item.name, "..")   
+    def upload_directory(self, directory_item):
+        print("Creating directory on dropbox", directory_item.name, "..")
+        
+        for entry_file in directory_item.files:
+            print("Uploading", entry_file.name, "..")
+            self.upload_file(entry_file)
+
+        for entry_dir in directory_item.children:
+            print("Creating subdirectory..")
+            self.upload_directory(entry_dir)
 
 
 def dump_pickle(filesystem, pickle_file_name):
