@@ -5,7 +5,7 @@ import pickle
 from Directory import Directory
 from File import File
 
-class FileManager:
+class Filesystem:
     '''File Manager
 
     It is in charge to build the structure of the filesystem
@@ -72,7 +72,7 @@ class FileManager:
 
 if __name__ == "__main__":
     HOME = os.environ['HOME']
-    f = FileManager(HOME + '/Desktop/test')
+    f = Filesystem(HOME + '/Desktop/test')
 
     print("Dumping pickle..")
     with open('tree.pickle', 'wb') as file: # pickle file name should be the same as principal dir

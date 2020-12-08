@@ -1,7 +1,7 @@
 import os
 import pickle
 
-from FileManager import FileManager
+from Filesystem import Filesystem
 
 def compare_filesystems(fs_local, fs_pickled, dir1=None, dir2=None):
     print("Checking file system..")
@@ -49,7 +49,7 @@ def clean():
 if __name__ == "__main__":
     HOME = os.environ['HOME']
     localpath = HOME + '/Desktop/test'
-    fs = FileManager(localpath)
+    fs = Filesystem(localpath)
 
     try:
         with open('filesystem.pickle', 'rb') as file:
