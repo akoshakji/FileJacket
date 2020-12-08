@@ -6,38 +6,36 @@ from Directory import Directory
 from File import File
 
 class FileManager:
-    
     '''File Manager
-    
+
     It is in charge to build the structure of the filesystem
-    
+
     root    --> root directory
     current --> current directory, used for navigation purposes
     ignore  --> ignore list of files/directories
     '''
-    
-    def __init__(self, 
-                 localpath, 
+    def __init__(self,
+                 localpath,
                  ignore=('build', '.DS_Store', '.localized', 'builds', 'products')):
-        
+
         name = path.basename(localpath)
         timestamp = os.stat(localpath).st_mtime
         root = Directory(name, timestamp)
-        
+
         # root directory
         self.root = root
         # current directory
         self.current = root
         # files or directories to ignore
         self.ignore = ignore
-        
+
         # build the filesystem
         self.build_tree(localpath, self.root)
 
 
     def build_tree(self, localpath, directory):
         '''Build the filesystem given a path to a local file/directory
-        
+
         localpath --> path to a local file/directory
         directory --> Directory object
         '''
@@ -58,7 +56,7 @@ class FileManager:
 
     def print_tree(self, directory):
         '''Print the filesystem
-        
+
         directory --> Directory object
         '''
         print("------- " + directory.name + " /", directory.timestamp, " -------")

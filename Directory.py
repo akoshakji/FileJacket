@@ -1,6 +1,4 @@
 class Directory:
-
-
     '''Class for directory
 
     name      --> directory name
@@ -8,8 +6,6 @@ class Directory:
     children  --> subdirectories present in the directory
     files     --> files present in the directory
     '''
-
-
     def __init__(self, name, timestamp):
         # directory name
         self.name = name
@@ -22,11 +18,11 @@ class Directory:
 
 
     def __eq__(self, other):
-                
+
         '''Override equality operator'''
-        
+
         if isinstance(other, Directory):
-            return ((self.name == other.name) and 
+            return ((self.name == other.name) and
                     (self.timestamp == other.timestamp))
         return False
 
@@ -36,7 +32,7 @@ if __name__ == '__main__':
     d2 = Directory('d2', 162076)
     d3 = Directory('d1', 162075)
     d4 = Directory('d1', 162076)
-    
+
     print(d1 == d2)
     print(d1 == d3)
     print(d1 == d4)
