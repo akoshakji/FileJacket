@@ -18,7 +18,7 @@ class FileManager:
     
     def __init__(self, 
                  localpath, 
-                 ignore=['build', '.DS_Store', '.localized', 'builds', 'products']):
+                 ignore=('build', '.DS_Store', '.localized', 'builds', 'products')):
         
         name = path.basename(localpath)
         timestamp = os.stat(localpath).st_mtime
