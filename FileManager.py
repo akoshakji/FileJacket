@@ -29,47 +29,26 @@ class FileManager:
         self.ignore = ignore
         
         self.build_tree(localpath, self.root)
-    
+
+
     def build_tree(self, localpath, directory):
-        
-        print("Building tree.. (directory: ", directory.name, ")")
+        print("Building tree.. (directory: " + directory.name + ")")
         for entry in os.scandir(localpath):
             if (entry.is_file() and (entry.name not in self.ignore)):
                 directory.files.append(File(entry.name, os.stat(entry.path).st_mtime))
             elif (entry.is_dir() and (entry.name not in self.ignore)):
                 directory.children.append(Directory(entry.name, os.stat(entry.path).st_mtime))
                 self.build_tree(entry.path, directory.children[-1])
-    
-    def check_tree(self, tree_pickled, directory=None):
-        print("Checking tree..")
-        if not directory:
-            assert(self.root.name == tree_pickled.root.name)
-            directory = self.root
-        
-        for entry_file in directory.files:
-            if (entry_file in tree_pickled.current.files):
-                print("File Found (check timestamp)", entry_file.name)
-            else:
-                print("File Not Found, create it..", entry_file.name)
-        
-        for entry_dir in directory.children:
-            if (entry_dir in tree_pickled.current.children):
-                print("Dir Found", entry_dir.name)
-                tree_pickled.current = entry_dir
-                self.check_tree(tree_pickled, entry_dir)
-            else:
-                print("Dir Not Found, create it ...")
-            
+
+
     def print_tree(self, directory):
         print("------- " + directory.name + " /", directory.timestamp, " -------")
-        self.print_files(directory)
+        for entry in directory.files:
+            print(entry.name, "\t", entry.timestamp)
         for entry in directory.children:
             print(entry.name)
             self.print_tree(entry)
 
-    def print_files(self, directory):
-        for entry in directory.files:
-            print(entry.name, "\t", entry.timestamp)
 
 if __name__ == "__main__":
     HOME = os.environ['HOME']
@@ -87,5 +66,3 @@ if __name__ == "__main__":
         f_unpickled = pickle.load(file)
 
     f_unpickled.print_tree(f_unpickled.root)
-    
-    f.check_tree(f_unpickled)
