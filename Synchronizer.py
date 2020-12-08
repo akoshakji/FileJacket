@@ -19,13 +19,11 @@ class Synchronizer:
 
         for entry_file in dir1.files:
             if entry_file in dir2.files:
-                index = dir2.files.index(entry_file)
-                if entry_file == dir2.files[index]:
-                    print("Files are the same", entry_file.name)
-                    continue
-            print("File Not Found, upload it..", entry_file.name)
+                print("Files are the same", entry_file.name)
+                continue
+            print("File Not Found, uploading it..", entry_file.name)
             # upload the file
-            #self.upload_file(entry_file)
+            self.upload_file(entry_file)
 
         for entry_dir in dir1.children:
             if entry_dir in dir2.children:
