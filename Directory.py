@@ -6,11 +6,12 @@ class Directory:
     children  --> subdirectories present in the directory
     files     --> files present in the directory
     '''
-    def __init__(self, name, timestamp):
+    def __init__(self, name, timestamp, path):
         # directory name
         self.name = name
         # timestamp of the last modification
         self.timestamp = timestamp
+        self.path = path
         # subdirectories present in the directory
         self.children = []
         # files present in the directory
@@ -23,7 +24,8 @@ class Directory:
 
         if isinstance(other, Directory):
             return ((self.name == other.name) and
-                    (self.timestamp == other.timestamp))
+                    (self.timestamp == other.timestamp) and
+                    (self.path == other.path))
         return False
 
 

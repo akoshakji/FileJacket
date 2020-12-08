@@ -1,6 +1,5 @@
 import os
 import os.path as path
-import pickle
 
 from Directory import Directory
 from File import File
@@ -8,7 +7,7 @@ from File import File
 class Filesystem:
     '''File Manager
 
-    It is in charge to build the structure of the filesystem
+    Class in charge to build the structure of the filesystem
 
     root    --> root directory
     current --> current directory, used for navigation purposes
@@ -20,7 +19,7 @@ class Filesystem:
 
         name = path.basename(localpath)
         timestamp = os.stat(localpath).st_mtime
-        root = Directory(name, timestamp)
+        root = Directory(name, timestamp, localpath)
 
         # root directory
         self.root = root
@@ -45,21 +44,25 @@ class Filesystem:
             # if the item is a file and it is not in the ignore list
             if (entry.is_file() and (entry.name not in self.ignore)):
                 # then store it in the directory's files list
-                directory.files.append(File(entry.name, os.stat(entry.path).st_mtime))
+                directory.files.append(File(entry.name, 
+                                            os.stat(entry.path).st_mtime,
+                                            entry.path))
             # if the item is a directory and it is not in the ignore list
             elif (entry.is_dir() and (entry.name not in self.ignore)):
                 # then store it in the directory's children list
-                directory.children.append(Directory(entry.name, os.stat(entry.path).st_mtime))
+                directory.children.append(Directory(entry.name, 
+                                                    os.stat(entry.path).st_mtime,
+                                                    entry.path))
                 # build the filesystem for the subdirectory
                 self.build_tree(entry.path, directory.children[-1])
-
-
+    
+    
     def print_tree(self, directory):
         '''Print the filesystem
 
         directory --> Directory object
         '''
-        print("------- " + directory.name + " /", directory.timestamp, " -------")
+        print("------- " + directory.name + " /", directory.timestamp, "/", directory.path, " -------")
         # loop over all the files
         for entry in directory.files:
             print(entry.name, "\t", entry.timestamp)
@@ -68,21 +71,8 @@ class Filesystem:
             print(entry.name)
             # print subdirectory
             self.print_tree(entry)
-
+        
 
 if __name__ == "__main__":
     HOME = os.environ['HOME']
     f = Filesystem(HOME + '/Desktop/test')
-
-    print("Dumping pickle..")
-    with open('tree.pickle', 'wb') as file: # pickle file name should be the same as principal dir
-        # Pickle the 'data' dictionary using the highest protocol available.
-        pickle.dump(f, file, pickle.HIGHEST_PROTOCOL)
-
-    print("Unpickling..")
-    with open('tree.pickle', 'rb') as file:
-        # The protocol version used is detected automatically, so we do not
-        # have to specify it.
-        f_unpickled = pickle.load(file)
-
-    f_unpickled.print_tree(f_unpickled.root)
