@@ -97,6 +97,28 @@ class DropboxManager:
                 sys.exit()
 
 
+    def clean(self, dbx_item_path, local_paths):
+        print("Cleaning up " + dbx_item_path)
+        for entry in self.dbx.files_list_folder(dbx_item_path).entries:
+            print(entry.path_lower)
+            if not entry.path_lower in local_paths:
+                # delete the item
+                print("[-] Deleting", entry.path_lower)
+                try:
+                    self.dbx.files_delete(entry.path_lower)
+                except ApiError as err:
+                    if err.user_message_text:
+                        print(err.user_message_text)
+                        sys.exit()
+                    else:
+                        print(err)
+                        sys.exit()
+            # if the item is a directory
+            elif isinstance(entry, dropbox.files.FolderMetadata):
+                # clean the directory
+                self.clean(entry.path_lower, local_paths)
+
+
     def clean_up(self, backuppath):
 
         '''Clean up files on Dropbox'''

@@ -16,8 +16,6 @@ class Synchronizer:
         self.dbx_prefix = '/'
         dbx_root_dir = self.dbx_prefix + os.path.basename(fs_local.root.path)
         self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
-        
-        self.list_of_files_path = []
 
 
     def compare_filesystems(self, dir1=None, dir2=None):
@@ -51,16 +49,14 @@ class Synchronizer:
 
 
     def upload_file(self, file_item):
-        dbx_item_path = self.get_remote_path(file_item)
-        #self.list_of_files_path.append(dbx_item_path)
+        dbx_item_path = self.get_remote_path(file_item.path)
         self.dbx.upload_file(file_item, dbx_item_path)
         print("File", file_item.name, "Uploaded!")
 
 
     def upload_directory(self, directory_item):
         print("Creating directory on dropbox", directory_item.name, "..")
-        dbx_item_path = self.get_remote_path(directory_item)
-        #self.list_of_files_path.append(dbx_item_path)
+        dbx_item_path = self.get_remote_path(directory_item.path)
         self.dbx.create_directory(dbx_item_path)
         
         for entry_file in directory_item.files:
@@ -73,11 +69,13 @@ class Synchronizer:
     
     
     def clean(self):
-        pass
+        dbx_item_path = self.get_remote_path(self.fs_local.root.path)
+        dbx_local_paths = [self.get_remote_path(x) for x in self.fs_local.list_of_files_path]
+        self.dbx.clean(dbx_item_path, dbx_local_paths)
     
     
-    def get_remote_path(self, item):
-        return self.dbx_prefix + os.path.relpath(item.path, self.root_base_path)  
+    def get_remote_path(self, item_path):
+        return self.dbx_prefix + os.path.relpath(item_path, self.root_base_path)
 
 
 def dump_pickle(filesystem, pickle_file_name):
@@ -105,10 +103,10 @@ if __name__ == "__main__":
     try:
         # load existing pickle
         fs_pickled = load_pickle(pickle_file_name)
-        fs_pickled.print_tree(fs_pickled.root)
         sync = Synchronizer(fs, fs_pickled)
         try:
             sync.compare_filesystems() # TODO: create Exception for this case
+            sync.clean()
         except:
             raise
         else:
