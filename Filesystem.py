@@ -1,5 +1,4 @@
 import os
-import os.path as path
 
 from Directory import Directory
 from File import File
@@ -17,7 +16,7 @@ class Filesystem:
                  localpath,
                  ignore=('build', '.DS_Store', '.localized', 'builds', 'products')):
 
-        name = path.basename(localpath)
+        name = os.path.basename(localpath)
         timestamp = os.stat(localpath).st_mtime
         root = Directory(name, timestamp, localpath)
 

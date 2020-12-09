@@ -1,5 +1,4 @@
 import os
-import os.path as path
 import sys
 
 import dropbox
@@ -7,15 +6,13 @@ from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
 
 from Filesystem import Filesystem
-from Synchronizer import Synchronizer
 
 class DropboxManager:
 
 
     def __init__(self, access_token, root_dbx):
         self.dbx = dropbox.Dropbox(access_token)
-        self.root_dbx = root_dbx # check if the folder exists. Better to create a setter
-        self.list_of_files = []
+        #root_dbx # TODO: check if the folder exists. Better to use a setter
 
         # check that the access token is valid
         try:
@@ -34,8 +31,8 @@ class DropboxManager:
         # loop over the local directories/files
         for entry in os.scandir(localpath):
             # path to the corresponding item on dropbox
-            dbx_item_path = path.join(backuppath, entry.name)
-            # store the item's name
+            dbx_item_path = os.path.join(backuppath, entry.name)
+            # store the item's path
             self.list_of_files.append(dbx_item_path)
             # if the item is a file
             if entry.is_file():
@@ -73,6 +70,33 @@ class DropboxManager:
                 self.upload_on_dbx(dbx, entry.path, dbx_item_path)
 
 
+    def upload_file(self, file_item, dbx_item_path):
+        with open(file_item.path, 'rb') as file:
+            print("[+]", file_item.name)
+            try:
+                self.dbx.files_upload(file.read(), dbx_item_path, mode=WriteMode.overwrite)
+            except ApiError as err:
+                if err.user_message_text:
+                    print(err.user_message_text)
+                    sys.exit()
+                else:
+                    print(err)
+                    sys.exit()
+    
+    
+    def create_directory(self, dbx_item_path):
+        print("[+] Creating new directory")
+        try:
+            self.dbx.files_create_folder(dbx_item_path)
+        except ApiError as err:
+            if err.user_message_text:
+                print(err.user_message_text)
+                sys.exit()
+            else:
+                print(err)
+                sys.exit()
+
+
     def clean_up(self, backuppath):
 
         '''Clean up files on Dropbox'''
@@ -82,7 +106,7 @@ class DropboxManager:
         # loop over the items on dropbox
         for entry in self.dbx.files_list_folder(backuppath).entries:
             # path to the corresponding item on dropbox
-            dbx_item_path = path.join(backuppath, entry.name)
+            dbx_item_path = os.path.join(backuppath, entry.name)
             # if the item is not in the list of uploaded files
             if not dbx_item_path in self.list_of_files:
                 # delete the item
@@ -106,4 +130,3 @@ if __name__ == "__main__":
     ACCESS_TOKEN = ""
     dbx_root_dir = '/test'
     dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
-

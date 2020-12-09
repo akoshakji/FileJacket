@@ -2,17 +2,26 @@ import os
 import pickle
 
 from Filesystem import Filesystem
+from DropboxManager import DropboxManager
 
 class Synchronizer:
     
     def __init__(self, fs_local, fs_pickled):
-        assert fs_local.root.name == fs_pickled.root.name # what if renamed?
+        assert fs_local.root.name == fs_pickled.root.name # TODO: what if renamed?
         self.fs_local = fs_local
         self.fs_pickled = fs_pickled
-    
-    def compare_filesystems(self, 
-                            dir1=None, dir2=None):
-        print("Checking file system..")
+        self.root_base_path = os.path.dirname(fs_local.root.path)
+        
+        ACCESS_TOKEN = ""
+        self.dbx_prefix = '/'
+        dbx_root_dir = self.dbx_prefix + os.path.basename(fs_local.root.path)
+        self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
+        
+        self.list_of_files_path = []
+
+
+    def compare_filesystems(self, dir1=None, dir2=None):
+        print("Checking filesystem..")
         if (dir1 is None) and (dir2 is None):
             dir1 = self.fs_local.current
             dir2 = self.fs_pickled.current
@@ -39,23 +48,20 @@ class Synchronizer:
             else:
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
                 self.upload_directory(entry_dir)
-        
+
+
     def upload_file(self, file_item):
+        dbx_item_path = self.get_remote_path(file_item)
+        #self.list_of_files_path.append(dbx_item_path)
+        self.dbx.upload_file(file_item, dbx_item_path)
         print("File", file_item.name, "Uploaded!")
-        # with open(entry, 'rb') as file:
-                #     print("[+]", entry.name)
-                #     try:
-                #         dbx.files_upload(file.read(), dbx_item_path, mode=WriteMode.overwrite)
-                #     except ApiError as err:
-                #         if err.user_message_text:
-                #             print(err.user_message_text)
-                #             sys.exit()
-                #         else:
-                #             print(err)
-                #             sys.exit()
-    
+
+
     def upload_directory(self, directory_item):
         print("Creating directory on dropbox", directory_item.name, "..")
+        dbx_item_path = self.get_remote_path(directory_item)
+        #self.list_of_files_path.append(dbx_item_path)
+        self.dbx.create_directory(dbx_item_path)
         
         for entry_file in directory_item.files:
             print("Uploading", entry_file.name, "..")
@@ -64,6 +70,14 @@ class Synchronizer:
         for entry_dir in directory_item.children:
             print("Creating subdirectory..")
             self.upload_directory(entry_dir)
+    
+    
+    def clean(self):
+        pass
+    
+    
+    def get_remote_path(self, item):
+        return self.dbx_prefix + os.path.relpath(item.path, self.root_base_path)  
 
 
 def dump_pickle(filesystem, pickle_file_name):
@@ -83,15 +97,24 @@ def load_pickle(pickle_file_name):
 
 if __name__ == "__main__":
     HOME = os.environ['HOME']
-    localpath = HOME + '/Desktop/test'
+    localpath = HOME + '/Desktop/' + 'test'
     fs = Filesystem(localpath)
     pickle_file_name = os.path.basename(localpath) + ".pickle"
+    # TODO: control where the pickle is created. Check also if it already exists and ask if overwrite
 
     try:
+        # load existing pickle
         fs_pickled = load_pickle(pickle_file_name)
         fs_pickled.print_tree(fs_pickled.root)
+        sync = Synchronizer(fs, fs_pickled)
+        try:
+            sync.compare_filesystems() # TODO: create Exception for this case
+        except:
+            raise
+        else:
+            # update pickle
+            # dump_pickle(fs, pickle_file_name)
+            pass
     except (OSError, IOError) as err:
+        # pickle does not exists, create it
         dump_pickle(fs, pickle_file_name)
-
-    sync = Synchronizer(fs, fs_pickled)
-    sync.compare_filesystems()
