@@ -21,8 +21,8 @@ class Synchronizer:
     def compare_filesystems(self, dir1=None, dir2=None):
         print("Checking filesystem..")
         if (dir1 is None) and (dir2 is None):
-            dir1 = self.fs_local.current
-            dir2 = self.fs_pickled.current
+            dir1 = self.fs_local.root
+            dir2 = self.fs_pickled.root
 
         for entry_file in dir1.files:
             if entry_file in dir2.files:
@@ -37,12 +37,12 @@ class Synchronizer:
                 print("Dir are the same", entry_dir.name)
             elif any(entry_dir.path in x.path for x in dir2.children):
                 print("Dir found but are not the same, enter and upload files..", entry_dir.name)
-                self.fs_local.current = entry_dir
+                dir1 = entry_dir
                 
                 index = [i for i,x in enumerate(dir2.children) if x.path==entry_dir.path][0]
-                self.fs_pickled.current = dir2.children[index]
+                dir2 = dir2.children[index]
                 
-                self.compare_filesystems(self.fs_local.current, self.fs_pickled.current)
+                self.compare_filesystems(dir1, dir2)
             else:
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
                 self.upload_directory(entry_dir)
