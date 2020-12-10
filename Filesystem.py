@@ -22,12 +22,10 @@ class Filesystem:
 
         # root directory
         self.root = root
-        # current directory
-        self.current = root
         # files or directories to ignore
         self.ignore = ignore
         
-        self.list_of_files_path = []
+        self.list_of_files_path = [] # TODO: use a tuple
 
         # build the filesystem
         self.build_tree(localpath, self.root)

@@ -21,14 +21,15 @@ class File:
                     (self.timestamp == other.timestamp) and
                     (self.path == other.path))
         return False
+    
+    
+    def __str__(self):
+        name = "name: " + self.name
+        path = "path: " + self.path
+        return "File:\n\t" \
+                + name + "\n\t" \
+                + path
 
 
 if __name__ == '__main__':
-    f1 = File('f1', 162076)
-    f2 = File('f2', 162076)
-    f3 = File('f1', 162075)
-    f4 = File('f1', 162076)
-
-    print(f1 == f2)
-    print(f1 == f3)
-    print(f1 == f4)
+    pass
