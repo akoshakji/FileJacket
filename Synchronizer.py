@@ -6,23 +6,27 @@ from DropboxManager import DropboxManager
 
 class Synchronizer:
     
-    def __init__(self, fs_local, fs_pickled):
-        assert fs_local.root.name == fs_pickled.root.name # TODO: what if renamed?
+    def __init__(self, fs_local):
         self.fs_local = fs_local
-        self.fs_pickled = fs_pickled
         self.root_base_path = os.path.dirname(fs_local.root.path)
+        self.list_to_delete = []
         
         ACCESS_TOKEN = ""
         self.dbx_prefix = '/'
         dbx_root_dir = self.dbx_prefix + os.path.basename(fs_local.root.path)
         self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
+        
+        print(dbx_root_dir)
+        if not self.check_directory_exists(dbx_root_dir):
+            self.upload_directory(fs_local.root)
 
 
-    def compare_filesystems(self, dir1=None, dir2=None):
+    def sync(self, fs_pickled, dir1=None, dir2=None):
         print("Checking filesystem..")
         if (dir1 is None) and (dir2 is None):
+            assert self.fs_local.root.name == fs_pickled.root.name # TODO: what if renamed?
             dir1 = self.fs_local.root
-            dir2 = self.fs_pickled.root
+            dir2 = fs_pickled.root
 
         for entry_file in dir1.files:
             if entry_file in dir2.files:
@@ -42,7 +46,7 @@ class Synchronizer:
                 index = [i for i,x in enumerate(dir2.children) if x.path==entry_dir.path][0]
                 dir2 = dir2.children[index]
                 
-                self.compare_filesystems(dir1, dir2)
+                self.sync(fs_pickled, dir1, dir2)
             else:
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
                 self.upload_directory(entry_dir)
@@ -68,14 +72,46 @@ class Synchronizer:
             self.upload_directory(entry_dir)
     
     
-    def clean(self):
-        dbx_item_path = self.get_remote_path(self.fs_local.root.path)
-        dbx_local_paths = [self.get_remote_path(x) for x in self.fs_local.list_of_files_path]
-        self.dbx.clean(dbx_item_path, dbx_local_paths)
+    def check_directory_exists(self, dbx_item_path):
+        return self.dbx.check_directory_exists(dbx_item_path)
+    
+    
+    def clean(self, fs_pickled):
+        # dbx_item_path = self.get_remote_path(self.fs_local.root.path)
+        # dbx_local_paths = [self.get_remote_path(x) for x in self.fs_local.list_of_files_path]
+        # self.dbx.clean(dbx_item_path, dbx_local_paths)
+        # l_local = self.fs_local.list_of_files_path
+        # l_pickle = self.fs_pickled.list_of_files_path
+        # list_to_delete = [self.get_remote_path(x) for x in l_pickle if x not in l_local]
+        # print(list_to_delete)
+        self.fill_delete_list(fs_pickled)
+        print(self.list_to_delete)
+        if self.list_to_delete:
+            self.list_to_delete = [self.get_remote_path(x) for x in self.list_to_delete]
+            self.dbx.clean(self.list_to_delete)
+        else:
+            print("Nothing to clean!")
     
     
     def get_remote_path(self, item_path):
         return self.dbx_prefix + os.path.relpath(item_path, self.root_base_path)
+
+
+    def fill_delete_list(self, fs_pickled, dir1=None, dir2=None):
+        print("Filling delete list..")
+        if (dir1 is None) and (dir2 is None):
+            dir1 = self.fs_local.root
+            dir2 = fs_pickled.root
+        for entry_dir in dir2.children:
+            if not any(entry_dir.path in x.path for x in dir1.children):
+                self.list_to_delete.append(entry_dir.path)
+            else:
+                index = [i for i,x in enumerate(dir1.children) if x.path==entry_dir.path][0]
+                self.fill_delete_list(fs_pickled, dir1.children[index], entry_dir)
+        
+        for entry_file in dir2.files:
+            if not any(entry_file.path in x.path for x in dir1.files):
+                self.list_to_delete.append(entry_file.path)
 
 
 def dump_pickle(filesystem, pickle_file_name):
@@ -86,8 +122,8 @@ def dump_pickle(filesystem, pickle_file_name):
 
 
 def load_pickle(pickle_file_name):
-    print("Unpickling..")
     with open(pickle_file_name, 'rb') as file:
+        print("Unpickling..")
         # The protocol version used is detected automatically, so we do not
         # have to specify it.
         return pickle.load(file)
@@ -97,22 +133,27 @@ if __name__ == "__main__":
     HOME = os.environ['HOME']
     localpath = HOME + '/Desktop/' + 'test'
     fs = Filesystem(localpath)
+    print("Filesystem")
+    fs.print_tree(fs.root)
     pickle_file_name = os.path.basename(localpath) + ".pickle"
     # TODO: control where the pickle is created. Check also if it already exists and ask if overwrite
 
     try:
         # load existing pickle
         fs_pickled = load_pickle(pickle_file_name)
-        sync = Synchronizer(fs, fs_pickled)
+        print("Filesystem Pickled")
+        fs_pickled.print_tree(fs_pickled.root)
+        sync = Synchronizer(fs)
         try:
-            sync.compare_filesystems() # TODO: create Exception for this case
-            sync.clean()
+            sync.sync(fs_pickled) # TODO: create Exception for this case
+            sync.clean(fs_pickled)
         except:
             raise
         else:
             # update pickle
-            # dump_pickle(fs, pickle_file_name)
-            pass
+            dump_pickle(fs, pickle_file_name)
     except (OSError, IOError) as err:
+        #TODO: In this case, must upload root folder
         # pickle does not exists, create it
+        sync = Synchronizer(fs)
         dump_pickle(fs, pickle_file_name)
