@@ -70,6 +70,8 @@ class Filesystem:
         # loop over all the subdirectories
         for entry in directory.children:
             print(entry.name)
+        
+        for entry in directory.children:
             # print subdirectory
             self.print_tree(entry)
         
