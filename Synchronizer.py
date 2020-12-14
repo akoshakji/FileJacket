@@ -39,7 +39,7 @@ class Synchronizer:
         for entry_dir in dir1.children:
             if entry_dir in dir2.children:
                 print("Dir are the same", entry_dir.name)
-            elif any(entry_dir.path in x.path for x in dir2.children):
+            elif any(entry_dir.path == x.path for x in dir2.children):
                 print("Dir found but are not the same, enter and upload files..", entry_dir.name)
                 dir1 = entry_dir
                 
@@ -102,15 +102,16 @@ class Synchronizer:
         if (dir1 is None) and (dir2 is None):
             dir1 = self.fs_local.root
             dir2 = fs_pickled.root
+
         for entry_dir in dir2.children:
-            if not any(entry_dir.path in x.path for x in dir1.children):
+            if not any(entry_dir.path == x.path for x in dir1.children):
                 self.list_to_delete.append(entry_dir.path)
             else:
                 index = [i for i,x in enumerate(dir1.children) if x.path==entry_dir.path][0]
                 self.fill_delete_list(fs_pickled, dir1.children[index], entry_dir)
         
         for entry_file in dir2.files:
-            if not any(entry_file.path in x.path for x in dir1.files):
+            if not any(entry_file.path == x.path for x in dir1.files):
                 self.list_to_delete.append(entry_file.path)
 
 
