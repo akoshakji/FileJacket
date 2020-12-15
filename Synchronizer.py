@@ -16,7 +16,6 @@ class Synchronizer:
         dbx_root_dir = self.dbx_prefix + os.path.basename(fs_local.root.path)
         self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
         
-        print(dbx_root_dir)
         if not self.check_directory_exists(dbx_root_dir):
             self.upload_directory(fs_local.root)
 
@@ -37,16 +36,15 @@ class Synchronizer:
             self.upload_file(entry_file)
 
         for entry_dir in dir1.children:
-            if entry_dir in dir2.children:
-                print("Dir are the same", entry_dir.name)
-            elif any(entry_dir.path == x.path for x in dir2.children):
-                print("Dir found but are not the same, enter and upload files..", entry_dir.name)
-                dir1 = entry_dir
+            if any(entry_dir.path == x.path for x in dir2.children):
+                print("Dir found, enter and check subfolders files..", entry_dir.name)
+                #dir1 = entry_dir
                 
                 index = [i for i,x in enumerate(dir2.children) if x.path==entry_dir.path][0]
-                dir2 = dir2.children[index]
+                #dir2 = dir2.children[index]
                 
-                self.sync(fs_pickled, dir1, dir2)
+                self.sync(fs_pickled, entry_dir, dir2.children[index])
+                #self.sync(fs_pickled, dir1, dir2)
             else:
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
                 self.upload_directory(entry_dir)
@@ -77,15 +75,9 @@ class Synchronizer:
     
     
     def clean(self, fs_pickled):
-        # dbx_item_path = self.get_remote_path(self.fs_local.root.path)
-        # dbx_local_paths = [self.get_remote_path(x) for x in self.fs_local.list_of_files_path]
-        # self.dbx.clean(dbx_item_path, dbx_local_paths)
-        # l_local = self.fs_local.list_of_files_path
-        # l_pickle = self.fs_pickled.list_of_files_path
-        # list_to_delete = [self.get_remote_path(x) for x in l_pickle if x not in l_local]
-        # print(list_to_delete)
+        print("Filling delete list..")
         self.fill_delete_list(fs_pickled)
-        print(self.list_to_delete)
+        print("List of files to delete: ", self.list_to_delete)
         if self.list_to_delete:
             self.list_to_delete = [self.get_remote_path(x) for x in self.list_to_delete]
             self.dbx.clean(self.list_to_delete)
@@ -98,7 +90,6 @@ class Synchronizer:
 
 
     def fill_delete_list(self, fs_pickled, dir1=None, dir2=None):
-        print("Filling delete list..")
         if (dir1 is None) and (dir2 is None):
             dir1 = self.fs_local.root
             dir2 = fs_pickled.root
