@@ -4,6 +4,7 @@ class Directory:
 
     name      --> directory name
     timestamp --> timestamp of the last modification
+    path      --> local path of the directory
     children  --> subdirectories present in the directory
     files     --> files present in the directory
     '''
@@ -12,6 +13,7 @@ class Directory:
         self.name = name
         # timestamp of the last modification
         self.timestamp = timestamp
+        # local path of the directory
         self.path = path
         # subdirectories present in the directory
         self.children = [] #TODO: use a tuple

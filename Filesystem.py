@@ -24,8 +24,6 @@ class Filesystem:
         self.root = root
         # files or directories to ignore
         self.ignore = ignore
-        
-        self.list_of_files_path = [] # TODO: use a tuple
 
         # build the filesystem
         self.build_tree(localpath, self.root)
@@ -43,14 +41,12 @@ class Filesystem:
         for entry in os.scandir(localpath):
             # if the item is a file and it is not in the ignore list
             if (entry.is_file() and (entry.name not in self.ignore)):
-                self.list_of_files_path.append(entry.path)
                 # then store it in the directory's files list
                 directory.files.append(File(entry.name, 
                                             os.stat(entry.path).st_mtime,
                                             entry.path))
             # if the item is a directory and it is not in the ignore list
             elif (entry.is_dir() and (entry.name not in self.ignore)):
-                self.list_of_files_path.append(entry.path)
                 # then store it in the directory's children list
                 directory.children.append(Directory(entry.name, 
                                                     os.stat(entry.path).st_mtime,

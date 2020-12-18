@@ -23,9 +23,11 @@ class Synchronizer:
     and this could lead to errors during synchronization.
     '''
 
-    def __init__(self, fs_local):
+    def __init__(self, fs_local, fs_pickled=None):
         # local filesystem
         self.fs_local = fs_local
+        # previous state of the filesystem
+        self.fs_pickled = fs_pickled
         # base path
         self.base_path = os.path.dirname(fs_local.root.path)
         # list of paths of files or directories to delete
@@ -47,22 +49,23 @@ class Synchronizer:
             self.upload_directory(fs_local.root)
 
 
-    def sync(self, fs_pickled, dir1=None, dir2=None):
+    def sync(self, dir1=None, dir2=None):
         '''
         Synchronize local filesystem on the remote
 
-        fs_pickled ----> previous state of the filesystem
         dir1 ----> directory in the local filesystem
         dir2 ----> directory in the pickled filesystem
         '''
         print("Checking filesystem..")
         # if dir1 and dir2 are not specified
         if (dir1 is None) and (dir2 is None):
+            # check that fs_pickle is not null
+            assert self.fs_pickled is not None
             # check that the remote root directory is the same
-            assert self.fs_local.root.name == fs_pickled.root.name # TODO: what if renamed?
+            assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?
             # then initialize
             dir1 = self.fs_local.root
-            dir2 = fs_pickled.root
+            dir2 = self.fs_pickled.root
 
         # loop over all local files
         for entry_file in dir1.files:
@@ -87,8 +90,8 @@ class Synchronizer:
                 #dir2 = dir2.children[index]
 
                 # synchronize the subdirectory
-                self.sync(fs_pickled, entry_dir, dir2.children[index])
-                #self.sync(fs_pickled, dir1, dir2)
+                self.sync(entry_dir, dir2.children[index])
+                #self.sync(self.fs_pickled, dir1, dir2)
             else:
                 # the directory is not on the remote
                 print("Dir Not Found, create it, and upload all of its contents...", entry_dir.name)
@@ -135,13 +138,13 @@ class Synchronizer:
         return self.dbx.check_directory_exists(dbx_item_path)
 
 
-    def clean(self, fs_pickled):
+    def clean(self):
         '''
         Clean the files on the remote that are not present locally
         '''
         # fill the list of files or directories to delete
         print("Filling delete list..")
-        self.fill_delete_list(fs_pickled)
+        self.fill_delete_list()
         print("List of files to delete: ", self.list_to_delete)
 
         # if the list is not null
@@ -161,11 +164,10 @@ class Synchronizer:
         return self.dbx_prefix + os.path.relpath(item_path, self.base_path)
 
 
-    def fill_delete_list(self, fs_pickled, dir1=None, dir2=None):
+    def fill_delete_list(self, dir1=None, dir2=None):
         '''
         Fill the list of files and directories to delete
 
-        fs_pickled ----> previous state of the filesystem
         dir1 ----> directory in the local filesystem
         dir2 ----> directory in the pickled filesystem
         '''
@@ -173,7 +175,7 @@ class Synchronizer:
         if (dir1 is None) and (dir2 is None):
             # initialize
             dir1 = self.fs_local.root
-            dir2 = fs_pickled.root
+            dir2 = self.fs_pickled.root
 
         # loop over the subdirectories of dir2
         for entry_dir in dir2.children:
@@ -185,7 +187,7 @@ class Synchronizer:
                 # otherwise, retrieve the index of the subdirectory
                 index = [i for i,x in enumerate(dir1.children) if x.path==entry_dir.path][0]
                 # check recursively if the subdirectory contains items to delete
-                self.fill_delete_list(fs_pickled, dir1.children[index], entry_dir)
+                self.fill_delete_list(dir1.children[index], entry_dir)
 
         # loop over the files in dir2
         for entry_file in dir2.files:
@@ -231,10 +233,10 @@ if __name__ == "__main__":
         fs_pickled = load_pickle(pickle_file_name)
         print("Filesystem Pickled")
         fs_pickled.print_tree(fs_pickled.root)
-        sync = Synchronizer(fs)
+        sync = Synchronizer(fs, fs_pickled)
         try:
-            sync.sync(fs_pickled) # TODO: create Exception for this case
-            sync.clean(fs_pickled)
+            sync.sync() # TODO: create Exception for this case
+            sync.clean()
         except:
             raise
         else:

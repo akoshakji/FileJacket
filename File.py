@@ -4,12 +4,14 @@ class File:
 
     name      --> name of the file
     timestamp --> timestamp of the last modification
+    path      --> local path of the file
     '''
     def __init__(self, name, timestamp, path):
         # file name
         self.name = name
         # timestamp of the last modification
         self.timestamp = timestamp
+        # local path of the file
         self.path = path
 
 
