@@ -150,7 +150,7 @@ class Synchronizer:
         # if the list is not null
         if self.list_to_delete:
             # get the corresponding path on the remote
-            self.list_to_delete = [self.get_remote_path(x) for x in self.list_to_delete]
+            self.list_to_delete = map(self.get_remote_path, self.list_to_delete)
             # then clean
             self.dbx.clean(self.list_to_delete)
         else:
