@@ -36,8 +36,8 @@ class DropboxManager:
                 else:
                     print(err)
                     sys.exit()
-    
-    
+
+
     def create_directory(self, dbx_item_path):
         '''
         Create a new directory on Dropbox

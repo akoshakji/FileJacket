@@ -7,16 +7,16 @@ from DropboxManager import DropboxManager
 class Synchronizer:
     '''
     Class that synchronizes local directories with the remote server.
-    
+
     The local filesystem of the target directory is compared with the
     previous state of the filesystem of the same directory, which has
     been saved in a pickle. This choice aims to limit to the minimum
     the communication with the remote server, the most time consuming part
     and connection dependent.
-    
+
     Files or directories on the remote that are not present locally are cleaned
     from the remote.
-    
+
     Underlying assumption: The remote filesystem is a mirror of the local filesystem.
     Therefore, directories on the remote should not be modified manually.
     If that happens, the modifications will not be reflected in the pickled filesystem
@@ -26,7 +26,7 @@ class Synchronizer:
     def __init__(self, fs_local):
         # local filesystem
         self.fs_local = fs_local
-        # base path 
+        # base path
         self.base_path = os.path.dirname(fs_local.root.path)
         # list of paths of files or directories to delete
         self.list_to_delete = []
@@ -64,7 +64,7 @@ class Synchronizer:
             dir1 = self.fs_local.root
             dir2 = fs_pickled.root
 
-        # loop over all local files 
+        # loop over all local files
         for entry_file in dir1.files:
             # if the file is present in dir2
             if entry_file in dir2.files:
@@ -85,7 +85,7 @@ class Synchronizer:
                 # retrieve the index of the subdirectory
                 index = [i for i,x in enumerate(dir2.children) if x.path==entry_dir.path][0]
                 #dir2 = dir2.children[index]
-                
+
                 # synchronize the subdirectory
                 self.sync(fs_pickled, entry_dir, dir2.children[index])
                 #self.sync(fs_pickled, dir1, dir2)
@@ -126,15 +126,15 @@ class Synchronizer:
         for entry_dir in directory_item.children:
             print("Creating subdirectory..")
             self.upload_directory(entry_dir)
-    
-    
+
+
     def check_directory_exists(self, dbx_item_path):
         '''
         Check that the directory exists on the remote
         '''
         return self.dbx.check_directory_exists(dbx_item_path)
-    
-    
+
+
     def clean(self, fs_pickled):
         '''
         Clean the files on the remote that are not present locally
@@ -152,8 +152,8 @@ class Synchronizer:
             self.dbx.clean(self.list_to_delete)
         else:
             print("Nothing to clean!")
-    
-    
+
+
     def get_remote_path(self, item_path):
         '''
         Get the path on the remote given the local path
