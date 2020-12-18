@@ -1,5 +1,6 @@
 class Directory:
-    '''Class for directory
+    '''
+    Class for directory
 
     name      --> directory name
     timestamp --> timestamp of the last modification
@@ -19,9 +20,9 @@ class Directory:
 
 
     def __eq__(self, other):
-
-        '''Override equality operator'''
-
+        '''
+        Override equality operator
+        '''
         if isinstance(other, Directory):
             return ((self.name == other.name) and
                     (self.timestamp == other.timestamp) and
@@ -30,6 +31,9 @@ class Directory:
     
     
     def __str__(self):
+        '''
+        Override string representation
+        '''
         name = "name: " + self.name
         path = "path: " + self.path
         files = "files: " + " ".join([x.name for x in self.files])

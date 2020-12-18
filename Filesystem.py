@@ -4,12 +4,12 @@ from Directory import Directory
 from File import File
 
 class Filesystem:
-    '''File Manager
+    '''
+    File Manager
 
     Class in charge to build the structure of the filesystem
 
     root    --> root directory
-    current --> current directory, used for navigation purposes
     ignore  --> ignore list of files/directories
     '''
     def __init__(self,
@@ -32,7 +32,8 @@ class Filesystem:
 
 
     def build_tree(self, localpath, directory):
-        '''Build the filesystem given a path to a local file/directory
+        '''
+        Build the filesystem given a path to a local file/directory
 
         localpath --> path to a local file/directory
         directory --> Directory object
@@ -59,7 +60,8 @@ class Filesystem:
     
     
     def print_tree(self, directory):
-        '''Print the filesystem
+        '''
+        Print the filesystem
 
         directory --> Directory object
         '''

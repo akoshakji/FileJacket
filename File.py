@@ -1,5 +1,6 @@
 class File:
-    '''File
+    '''
+    File
 
     name      --> name of the file
     timestamp --> timestamp of the last modification
@@ -13,9 +14,9 @@ class File:
 
 
     def __eq__(self, other):
-
-        '''Override equality operator'''
-
+        '''
+        Override equality operator
+        '''
         if isinstance(other, File):
             return ((self.name == other.name) and
                     (self.timestamp == other.timestamp) and
@@ -24,6 +25,9 @@ class File:
     
     
     def __str__(self):
+        '''
+        Override string representation
+        '''
         name = "name: " + self.name
         path = "path: " + self.path
         return "File:\n\t" \

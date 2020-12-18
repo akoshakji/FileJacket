@@ -5,9 +5,11 @@ from dropbox.files import WriteMode
 from dropbox.exceptions import ApiError, AuthError
 
 class DropboxManager:
-
-
+    '''
+    Class that manages all the interactions with Dropbox
+    '''
     def __init__(self, access_token, root_dbx):
+        # dropbox object
         self.dbx = dropbox.Dropbox(access_token)
         #root_dbx # TODO: check if the folder exists. Better to use a setter
 
@@ -20,7 +22,9 @@ class DropboxManager:
 
 
     def upload_file(self, file_item, dbx_item_path):
-        print(file_item.path, dbx_item_path)
+        '''
+        Upload file on Dropbox
+        '''
         with open(file_item.path, 'rb') as file:
             print("[+]", file_item.name)
             try:
@@ -35,8 +39,10 @@ class DropboxManager:
     
     
     def create_directory(self, dbx_item_path):
-        print("[+] Creating new directory")
-        print(dbx_item_path)
+        '''
+        Create a new directory on Dropbox
+        '''
+        print("[+] Creating new directory", dbx_item_path)
         try:
             self.dbx.files_create_folder(dbx_item_path)
         except ApiError as err:
@@ -49,6 +55,9 @@ class DropboxManager:
 
 
     def clean(self, list_to_delete):
+        '''
+        Clean files or directories on Dropbox
+        '''
         for entry in list_to_delete:
             # delete the item
             print("[-] Deleting", entry)
@@ -64,6 +73,9 @@ class DropboxManager:
 
 
     def check_directory_exists(self, dbx_item_path):
+        '''
+        Check if a directory exists on Dropbox
+        '''
         # check if the directory exists
         try:
             self.dbx.files_list_folder(dbx_item_path)

@@ -17,9 +17,9 @@ class Synchronizer:
     Files or directories on the remote that are not present locally are cleaned
     from the remote.
     
-    Underlying assumption: The remote filesystem should be a mirror of the local filesystem.
+    Underlying assumption: The remote filesystem is a mirror of the local filesystem.
     Therefore, directories on the remote should not be modified manually.
-    If that happens, the modifications will not be included in the pickled filesystem
+    If that happens, the modifications will not be reflected in the pickled filesystem
     and this could lead to errors during synchronization.
     '''
 
@@ -196,14 +196,14 @@ class Synchronizer:
 
 
 #TODO these methods do not belong to the Synchronizer
-def dump_pickle(filesystem, pickle_file_name):
+def dump_pickle(py_object, pickle_file_name):
     '''
     Dump pickle of Python object
     '''
     print("Dumping pickle..")
     with open(pickle_file_name, 'wb') as file:
         # Pickle the 'data' dictionary using the highest protocol available.
-        pickle.dump(filesystem, file, pickle.HIGHEST_PROTOCOL)
+        pickle.dump(py_object, file, pickle.HIGHEST_PROTOCOL)
 
 
 def load_pickle(pickle_file_name):
