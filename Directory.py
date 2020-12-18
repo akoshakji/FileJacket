@@ -16,9 +16,9 @@ class Directory:
         # local path of the directory
         self.path = path
         # subdirectories present in the directory
-        self.children = [] #TODO: use a tuple
+        self.children = []
         # files present in the directory
-        self.files = [] #TODO: use a tuple
+        self.files = []
 
 
     def __eq__(self, other):

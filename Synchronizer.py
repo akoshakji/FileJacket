@@ -23,11 +23,11 @@ class Synchronizer:
     and this could lead to errors during synchronization.
     '''
 
-    def __init__(self, fs_local, fs_pickled=None):
+    def __init__(self, fs_local):
         # local filesystem
         self.fs_local = fs_local
         # previous state of the filesystem
-        self.fs_pickled = fs_pickled
+        self.fs_pickled = None
         # base path
         self.base_path = os.path.dirname(fs_local.root.path)
         # list of paths of files or directories to delete
@@ -38,8 +38,10 @@ class Synchronizer:
         ACCESS_TOKEN = ""
         # prefix path to the remote root directory
         self.dbx_prefix = '/'
+        # root directory
+        root_dir = os.path.basename(fs_local.root.path)
         # path to remote root directory
-        dbx_root_dir = self.dbx_prefix + os.path.basename(fs_local.root.path)
+        dbx_root_dir = self.dbx_prefix + root_dir
         # start DropboxManager
         self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
 
@@ -47,6 +49,15 @@ class Synchronizer:
         if not self.check_directory_exists(dbx_root_dir):
             # upload it entirely
             self.upload_directory(fs_local.root)
+        elif not os.path.isfile(root_dir + ".pickle"):
+            print("Pickle does not exist, creating it..")
+            self.update_fs_pickle()
+        elif os.path.isfile(root_dir + ".pickle"):
+            print("Pickle found, loading it..")
+            self.fs_pickled = self.load_fs_pickle()
+            print("---------------------")
+            print("Filesystem Pickled:")
+            self.fs_pickled.print_tree(self.fs_pickled.root)
 
 
     def sync(self, dir1=None, dir2=None):
@@ -197,21 +208,27 @@ class Synchronizer:
                 self.list_to_delete.append(entry_file.path)
 
 
+    def update_fs_pickle(self):
+        pickle_file_name = os.path.basename(self.fs_local.root.path) + ".pickle"
+        dump_pickle(self.fs_local, pickle_file_name)
+
+
+    def load_fs_pickle(self):
+        pickle_file_name = os.path.basename(self.fs_local.root.path) + ".pickle"
+        return load_pickle(pickle_file_name)
+
+
 if __name__ == "__main__":
     HOME = os.environ['HOME']
     localpath = HOME + '/Desktop/' + 'test'
     fs = Filesystem(localpath)
-    print("Filesystem")
+    print("---------------------")
+    print("Filesystem:")
     fs.print_tree(fs.root)
-    pickle_file_name = os.path.basename(localpath) + ".pickle"
-    # TODO: control where the pickle is created. Check also if it already exists and ask if overwrite
 
     try:
-        # load existing pickle
-        fs_pickled = load_pickle(pickle_file_name)
-        print("Filesystem Pickled")
-        fs_pickled.print_tree(fs_pickled.root)
-        sync = Synchronizer(fs, fs_pickled)
+        # TODO: control where the pickle is created. Check also if it already exists and ask if overwrite
+        sync = Synchronizer(fs)
         try:
             sync.sync() # TODO: create Exception for this case
             sync.clean()
@@ -219,9 +236,8 @@ if __name__ == "__main__":
             raise
         else:
             # update pickle
-            dump_pickle(fs, pickle_file_name)
+            sync.update_fs_pickle()
     except (OSError, IOError) as err:
-        #TODO: In this case, must upload root folder
         # pickle does not exists, create it
         sync = Synchronizer(fs)
-        dump_pickle(fs, pickle_file_name)
+        sync.update_fs_pickle()

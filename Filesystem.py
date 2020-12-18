@@ -9,8 +9,8 @@ class Filesystem:
 
     Class in charge to build the structure of the filesystem
 
-    root    --> root directory
-    ignore  --> ignore list of files/directories
+    localpath    --> local path of the root directory
+    ignore       --> ignore list of files/directories
     '''
     def __init__(self,
                  localpath,
