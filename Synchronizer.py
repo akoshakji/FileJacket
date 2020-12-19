@@ -49,10 +49,12 @@ class Synchronizer:
         if not self.check_directory_exists(dbx_root_dir):
             # upload it entirely
             self.upload_directory(fs_local.root)
-        elif not os.path.isfile(root_dir + ".pickle"):
+
+        if not os.path.isfile(root_dir + ".pickle"):
             print("Pickle does not exist, creating it..")
             self.update_fs_pickle()
-        elif os.path.isfile(root_dir + ".pickle"):
+            self.fs_pickled = self.load_fs_pickle()
+        else:
             print("Pickle found, loading it..")
             self.fs_pickled = self.load_fs_pickle()
             print("---------------------")
