@@ -23,6 +23,7 @@ class Synchronizer:
     and this could lead to errors during synchronization.
     '''
 
+
     def __init__(self, fs_local):
         # local filesystem
         self.fs_local = fs_local
@@ -62,24 +63,25 @@ class Synchronizer:
             self.fs_pickled.print_tree(self.fs_pickled.root)
 
 
-    def sync(self, dir1=None, dir2=None):
+    def synchronize(self):
+        # check that fs_pickle is not null
+        assert self.fs_pickled is not None
+        # check that the remote root directory is the same
+        assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?
+
+        print("Checking filesystem..")
+        self.sync(self.fs_local.root, self.fs_pickled.root)
+        self.clean()
+        self.update_fs_pickle()
+
+
+    def sync(self, dir1, dir2):
         '''
         Synchronize local filesystem on the remote
 
         dir1 ----> directory in the local filesystem
         dir2 ----> directory in the pickled filesystem
         '''
-        print("Checking filesystem..")
-        # if dir1 and dir2 are not specified
-        if (dir1 is None) and (dir2 is None):
-            # check that fs_pickle is not null
-            assert self.fs_pickled is not None
-            # check that the remote root directory is the same
-            assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?
-            # then initialize
-            dir1 = self.fs_local.root
-            dir2 = self.fs_pickled.root
-
         # loop over all local files
         for entry_file in dir1.files:
             # if the file is present in dir2
@@ -157,11 +159,11 @@ class Synchronizer:
         '''
         # fill the list of files or directories to delete
         print("Filling delete list..")
-        self.fill_delete_list()
-        print("List of files to delete: ", self.list_to_delete)
+        self.fill_delete_list(self.fs_local.root, self.fs_pickled.root)
 
         # if the list is not null
         if self.list_to_delete:
+            print("List of files to delete:", self.list_to_delete)
             # get the corresponding path on the remote
             self.list_to_delete = map(self.get_remote_path, self.list_to_delete)
             # then clean
@@ -177,19 +179,13 @@ class Synchronizer:
         return self.dbx_prefix + os.path.relpath(item_path, self.base_path)
 
 
-    def fill_delete_list(self, dir1=None, dir2=None):
+    def fill_delete_list(self, dir1, dir2):
         '''
         Fill the list of files and directories to delete
 
         dir1 ----> directory in the local filesystem
         dir2 ----> directory in the pickled filesystem
         '''
-        # if dir1 and dir2 are not specified
-        if (dir1 is None) and (dir2 is None):
-            # initialize
-            dir1 = self.fs_local.root
-            dir2 = self.fs_pickled.root
-
         # loop over the subdirectories of dir2
         for entry_dir in dir2.children:
             # if the path of the subdirectory does not exist in dir1 subdirectories
@@ -228,18 +224,5 @@ if __name__ == "__main__":
     print("Filesystem:")
     fs.print_tree(fs.root)
 
-    try:
-        # TODO: control where the pickle is created. Check also if it already exists and ask if overwrite
-        sync = Synchronizer(fs)
-        try:
-            sync.sync() # TODO: create Exception for this case
-            sync.clean()
-        except:
-            raise
-        else:
-            # update pickle
-            sync.update_fs_pickle()
-    except (OSError, IOError) as err:
-        # pickle does not exists, create it
-        sync = Synchronizer(fs)
-        sync.update_fs_pickle()
+    sync = Synchronizer(fs)
+    sync.synchronize() # TODO: create Exception for this case
