@@ -24,7 +24,7 @@ class Synchronizer:
     '''
 
 
-    def __init__(self, fs_local):
+    def __init__(self, fs_local, prefix_remote='/'):
         # local filesystem
         self.fs_local = fs_local
         # previous state of the filesystem
@@ -38,7 +38,7 @@ class Synchronizer:
         # access token
         ACCESS_TOKEN = ""
         # prefix path to the remote root directory
-        self.dbx_prefix = '/'
+        self.dbx_prefix = prefix_remote
         # root directory
         root_dir = os.path.basename(fs_local.root.path)
         # path to remote root directory
@@ -51,7 +51,8 @@ class Synchronizer:
             # upload it entirely
             self.upload_directory(fs_local.root)
 
-        if not os.path.isfile(root_dir + ".pickle"):
+        pickle_file_name = root_dir + ".pickle"
+        if not os.path.isfile(pickle_file_name):
             print("Pickle does not exist, creating it..")
             self.update_fs_pickle()
             self.fs_pickled = self.load_fs_pickle()
