@@ -8,10 +8,9 @@ class DropboxManager:
     '''
     Class that manages all the interactions with Dropbox
     '''
-    def __init__(self, access_token, root_dbx):
+    def __init__(self, access_token):
         # dropbox object
         self.dbx = dropbox.Dropbox(access_token)
-        #root_dbx # TODO: check if the folder exists. Better to use a setter
 
         # check that the access token is valid
         try:

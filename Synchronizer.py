@@ -37,15 +37,14 @@ class Synchronizer:
         #TODO move all dropbox objects and introduce abstraction
         # access token
         ACCESS_TOKEN = ""
+        # start DropboxManager
+        self.dbx = DropboxManager(ACCESS_TOKEN)
         # prefix path to the remote root directory
         self.dbx_prefix = prefix_remote
         # root directory
         root_dir = os.path.basename(fs_local.root.path)
         # path to remote root directory
         dbx_root_dir = self.dbx_prefix + root_dir
-        # start DropboxManager
-        self.dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
-
         # if the remote root directory does not exist
         if not self.check_directory_exists(dbx_root_dir):
             # upload it entirely
