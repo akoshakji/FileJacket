@@ -87,6 +87,4 @@ class DropboxManager:
 
 
 if __name__ == "__main__":
-    ACCESS_TOKEN = ""
-    dbx_root_dir = '/test'
-    dbx = DropboxManager(ACCESS_TOKEN, dbx_root_dir)
+    pass

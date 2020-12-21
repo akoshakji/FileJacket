@@ -1,7 +1,10 @@
 import os
+import sys
 
-from Filesystem import Filesystem
 from DropboxManager import DropboxManager
+from File import File
+from Filesystem import Filesystem
+
 from helpers import dump_pickle, load_pickle
 
 class Synchronizer:
@@ -24,15 +27,20 @@ class Synchronizer:
     '''
 
 
-    def __init__(self, fs_local, prefix_remote='/'):
+    def __init__(self, localpath, prefix_remote='/'):
         # local filesystem
-        self.fs_local = fs_local
+        self.fs_local = None
         # previous state of the filesystem
         self.fs_pickled = None
-        # base path
-        self.base_path = os.path.dirname(fs_local.root.path)
+        # local single file upload
+        self.file_local = None
         # list of paths of files or directories to delete
         self.list_to_delete = []
+
+        # base path
+        self.base_path = os.path.dirname(localpath)
+        # root directory
+        root_dir = os.path.basename(localpath)
 
         #TODO move all dropbox objects and introduce abstraction
         # access token
@@ -41,38 +49,61 @@ class Synchronizer:
         self.dbx = DropboxManager(ACCESS_TOKEN)
         # prefix path to the remote root directory
         self.dbx_prefix = prefix_remote
-        # root directory
-        root_dir = os.path.basename(fs_local.root.path)
         # path to remote root directory
         dbx_root_dir = self.dbx_prefix + root_dir
-        # if the remote root directory does not exist
-        if not self.check_directory_exists(dbx_root_dir):
-            # upload it entirely
-            self.upload_directory(fs_local.root)
 
-        pickle_file_name = root_dir + ".pickle"
-        if not os.path.isfile(pickle_file_name):
-            print("Pickle does not exist, creating it..")
-            self.update_fs_pickle()
-            self.fs_pickled = self.load_fs_pickle()
+        if os.path.isdir(localpath):
+            print('is dir')
+            self.fs_local = Filesystem(localpath)
+            # if the remote root directory does not exist
+            if not self.check_directory_exists(dbx_root_dir):
+                print("Root directory does not exists, create it..")
+                try:
+                    # upload it entirely
+                    self.upload_directory(self.fs_local.root)
+                except KeyboardInterrupt:
+                    print('Synchronizer - Interrupted, removing root folder..')
+                    #Delete root directory
+                    self.dbx.clean([self.get_remote_path(self.fs_local.root.path)])
+                    sys.exit()
+            else:
+                print("Found Root directory")
+
+            pickle_file_name = root_dir + ".pickle"
+            if not os.path.isfile(pickle_file_name):
+                print("Pickle does not exist, creating it..")
+                self.update_fs_pickle()
+                self.fs_pickled = self.load_fs_pickle()
+            else:
+                print("Pickle found, loading it..")
+                self.fs_pickled = self.load_fs_pickle()
+                print("---------------------")
+                print("Filesystem Pickled:")
+                self.fs_pickled.print_tree(self.fs_pickled.root)
+        elif os.path.isfile(localpath):
+            print('is file')
+            self.file_local = File(root_dir, os.stat(localpath).st_mtime, localpath)
         else:
-            print("Pickle found, loading it..")
-            self.fs_pickled = self.load_fs_pickle()
-            print("---------------------")
-            print("Filesystem Pickled:")
-            self.fs_pickled.print_tree(self.fs_pickled.root)
+            print('Synchronizer - Error: Invalid path')
+            sys.exit()
 
 
     def synchronize(self):
         # check that fs_pickle is not null
-        assert self.fs_pickled is not None
-        # check that the remote root directory is the same
-        assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?
+        if self.fs_pickled is not None:
+            # check that the remote root directory is the same
+            assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?
 
-        print("Checking filesystem..")
-        self.sync(self.fs_local.root, self.fs_pickled.root)
-        self.clean()
-        self.update_fs_pickle()
+            print("Checking filesystem..")
+            self.sync(self.fs_local.root, self.fs_pickled.root)
+            self.clean()
+            self.update_fs_pickle()
+        elif self.file_local is not None:
+            print("Uploading single file..")
+            self.upload_file(self.file_local)
+        else:
+            print('Synchronizer - Error: Something went wrong during synchronization')
+            sys.exit()
 
 
     def sync(self, dir1, dir2):
@@ -217,12 +248,4 @@ class Synchronizer:
 
 
 if __name__ == "__main__":
-    HOME = os.environ['HOME']
-    localpath = HOME + '/Desktop/' + 'test'
-    fs = Filesystem(localpath)
-    print("---------------------")
-    print("Filesystem:")
-    fs.print_tree(fs.root)
-
-    sync = Synchronizer(fs)
-    sync.synchronize() # TODO: create Exception for this case
+    pass
