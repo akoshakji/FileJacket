@@ -14,7 +14,7 @@ class Filesystem:
     '''
     def __init__(self,
                  localpath,
-                 ignore=('build', '.DS_Store', '.localized', 'builds', 'products')):
+                 ignore=('build', '.DS_Store', '.localized', 'builds', 'products', 'cache')):
 
         name = os.path.basename(localpath)
         timestamp = os.stat(localpath).st_mtime
