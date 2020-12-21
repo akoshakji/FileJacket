@@ -4,8 +4,7 @@ import sys
 from DropboxManager import DropboxManager
 from File import File
 from Filesystem import Filesystem
-
-from helpers import dump_pickle, load_pickle
+from PickleHandler import PickleHandler
 
 class Synchronizer:
     '''
@@ -69,14 +68,17 @@ class Synchronizer:
             else:
                 print("Found Root directory")
 
+            # pickle name
             pickle_file_name = root_dir + ".pickle"
-            if not os.path.isfile(pickle_file_name):
+            # PickleHandler object
+            self.ph = PickleHandler(pickle_file_name)
+            if not os.path.isfile(self.ph.get_pickle_path()):
                 print("Pickle does not exist, creating it..")
-                self.update_fs_pickle()
-                self.fs_pickled = self.load_fs_pickle()
+                self.ph.dump_pickle(self.fs_local)
+                self.fs_pickled = self.ph.load_pickle()
             else:
                 print("Pickle found, loading it..")
-                self.fs_pickled = self.load_fs_pickle()
+                self.fs_pickled = self.ph.load_pickle()
                 print("---------------------")
                 print("Filesystem Pickled:")
                 self.fs_pickled.print_tree(self.fs_pickled.root)
@@ -97,7 +99,7 @@ class Synchronizer:
             print("Checking filesystem..")
             self.sync(self.fs_local.root, self.fs_pickled.root)
             self.clean()
-            self.update_fs_pickle()
+            self.ph.dump_pickle(self.fs_local)
         elif self.file_local is not None:
             print("Uploading single file..")
             self.upload_file(self.file_local)
@@ -235,16 +237,6 @@ class Synchronizer:
             if not any(entry_file.path == x.path for x in dir1.files):
                 # add the path of the file to the list
                 self.list_to_delete.append(entry_file.path)
-
-
-    def update_fs_pickle(self):
-        pickle_file_name = os.path.basename(self.fs_local.root.path) + ".pickle"
-        dump_pickle(self.fs_local, pickle_file_name)
-
-
-    def load_fs_pickle(self):
-        pickle_file_name = os.path.basename(self.fs_local.root.path) + ".pickle"
-        return load_pickle(pickle_file_name)
 
 
 if __name__ == "__main__":
