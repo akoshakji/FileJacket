@@ -68,10 +68,8 @@ class Synchronizer:
             else:
                 print("Found Root directory")
 
-            # pickle name
-            pickle_file_name = root_dir + ".pickle"
             # PickleHandler object
-            self.ph = PickleHandler(pickle_file_name)
+            self.ph = PickleHandler(root_dir)
             if not os.path.isfile(self.ph.get_pickle_path()):
                 print("Pickle does not exist, creating it..")
                 self.ph.dump_pickle(self.fs_local)
@@ -91,7 +89,6 @@ class Synchronizer:
 
 
     def synchronize(self):
-        # check that fs_pickle is not null
         if self.fs_pickled is not None:
             # check that the remote root directory is the same
             assert self.fs_local.root.name == self.fs_pickled.root.name # TODO: what if renamed?

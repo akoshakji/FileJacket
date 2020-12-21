@@ -10,6 +10,8 @@ class PickleHandler:
             # directory already exists
             pass
 
+        pickle_file_name = pickle_file_name + ".pickle"
+        
         if not prefix or os.path.isdir(prefix):
             self.pickle_path = prefix + dir + pickle_file_name
         else:
