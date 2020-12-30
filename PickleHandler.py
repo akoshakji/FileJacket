@@ -3,9 +3,11 @@ import sys
 import pickle
 
 class PickleHandler:
-    def __init__(self, pickle_file_name, dir='pickles/', prefix=''):
+    def __init__(self, pickle_file_name,
+                 pickle_dir='pickles/',
+                 prefix=''):
         try:
-            os.makedirs(dir)
+            os.makedirs(pickle_dir)
         except FileExistsError:
             # directory already exists
             pass
@@ -13,10 +15,10 @@ class PickleHandler:
         pickle_file_name = pickle_file_name + ".pickle"
         
         if not prefix or os.path.isdir(prefix):
-            self.pickle_path = prefix + dir + pickle_file_name
+            self.pickle_path = prefix + pickle_dir + pickle_file_name
         else:
             print("PickleHandler - Error: "
-                  "Please specify a regular prefix (path to dir or empty string)")
+                  "Please specify a regular prefix (path to pickle dir or empty string)")
             sys.exit()
 
 
