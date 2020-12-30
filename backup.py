@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# Documentation on Dropbox - Python API
-# https://dropbox-sdk-python.readthedocs.io/en/latest/index.html
-
 import os
 
 from Synchronizer import Synchronizer

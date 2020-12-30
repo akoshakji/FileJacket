@@ -1,3 +1,6 @@
+# Documentation on Dropbox - Python API
+# https://dropbox-sdk-python.readthedocs.io/en/latest/index.html
+
 import sys
 
 import dropbox
